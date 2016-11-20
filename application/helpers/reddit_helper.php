@@ -12,7 +12,7 @@ if (!function_exists('store_post')) {
         }
 
         //  insert original post data to secondary storage
-        $data = array('post_title' => $title, 'post_votes' => 0,
+        $data = array('post_title' => $title, 'post_upvotes' => 0, 'post_downvotes' => 0,
             'post_created' => $datetime, 'user_id' => $ci->session->userdata('user_id'));
         $ci->db->insert("post", $data);
 
@@ -38,21 +38,44 @@ if (!function_exists('store_post')) {
 
 }
 
-if (!function_exists('delete_post')) {
+if (!function_exists('get_post')) {
 
-    function delete_post($post_id, $type) {
+    function get_post($id) {
+        //  check the post id
         $ci = & get_instance();
+        $ci->db->from('post');
+        $ci->db->where('post_id', $id);
+        $post = $ci->db->get()->result();
 
-        if (isset($post_id) && isset($type)) {
-            if ($type === 'text') {
-                $ci->db->delete('text_post', array('post_id' => $id));
-            } else if ($type === 'link') {
-                $ci->db->delete('link_post', array('post_id' => $id));
-            }
+        if (!(is_array($post) && count($post) == 1)) {
+            return NULL;
+        }
 
-            return $ci->db->delete('post', array('post_id' => $id));
+        $ci->db->from('comment');
+        $ci->db->where('post_id', $post[0]->post_id);
+
+        $comments = build_comments($ci->db->get()->result());
+
+        $ci->db->from('text_post');
+        $ci->db->where('post_id', $post[0]->post_id);
+        $text_posts = $ci->db->get()->result();
+
+        if (is_array($text_posts) && count($text_posts) == 1) {
+            $text_post = build_text_post($post[0], $text_posts[0]->post_text);
+            $text_post->comments = $comments;
+            return $text_post;
         } else {
-            return false;
+            $ci->db->from('link_post');
+            $ci->db->where('post_id', $post[0]->post_id);
+            $link_posts = $ci->db->get()->result();
+
+            if (is_array($link_posts) && count($link_posts) == 1) {
+                $link_post = build_link_post($post[0], $link_posts[0]->post_link);
+                $link_post->comments = $comments;
+                return $link_post;
+            } else {
+                return NULL;
+            }
         }
     }
 
@@ -60,13 +83,13 @@ if (!function_exists('delete_post')) {
 
 if (!function_exists('get_posts')) {
 
-    function get_posts() {
+    function get_posts($limit, $offset) {
         //  check the post id
         $ci = & get_instance();
-        $ci->db->from('post');
+        $results = $ci->db->get('post', $limit, $offset);
         $posts = array();
 
-        foreach ($ci->db->get()->result() as $post) {
+        foreach ($results->result() as $post) {
             $ci->db->from('comment');
             $ci->db->where('post_id', $post->post_id);
 
@@ -98,15 +121,26 @@ if (!function_exists('get_posts')) {
 
 }
 
-if (function_exists('vote_post')) {
+if (!function_exists('get_post_count')) {
+    function get_post_count() {
+        $ci = & get_instance();
+        return $ci->db->count_all("post");
+    }
+}
 
-    function vote_post($id, $votes) {
+if (!function_exists('vote_post')) {
+
+    function vote_post($id, $votes, $type) {
         if (!(isset($id) && isset($votes))) {
             return;
         }
 
         $ci = & get_instance();
-        $data = array('post_votes' => $votes);
+        if ($type == 'up') {
+            $data = array('post_upvotes' => $votes);
+        } else {
+            $data = array('post_downvotes' => $votes);
+        }
 
         $ci->db->where('post_id', $id);
         $ci->db->update('post', $data);
@@ -114,19 +148,44 @@ if (function_exists('vote_post')) {
 
 }
 
-if (function_exists('store_comment')) {
+if (!function_exists('delete_post')) {
 
-    function store_comment($text, $datetime, $parent, $post_id) {
-        //  insert data to secondary storage
-        $data = array('comment_votes' => 0, 'comment_text' => $text,
-            'comment_datetime' => $datetime, 'comment_parent_id' => $parent,
-            'post_id' => $post_id);
-        $this->db->insert("comment", $data);
+    function delete_post($post_id, $type) {
+        $ci = & get_instance();
+
+        if (isset($post_id) && isset($type)) {
+            //  delete comments
+            $ci->db->delete('comment', array('post_id' => $post_id));
+
+            //  delete sub-class post references
+            if ($type === 'text') {
+                $ci->db->delete('text_post', array('post_id' => $post_id));
+            } else if ($type === 'link') {
+                $ci->db->delete('link_post', array('post_id' => $post_id));
+            }
+
+            //  delete original post reference
+            return $ci->db->delete('post', array('post_id' => $post_id));
+        } else {
+            return false;
+        }
     }
 
 }
 
-if (function_exists('get_comment')) {
+if (!function_exists('store_comment')) {
+
+    function store_comment($text, $datetime, $parent, $post_id) {
+        $ci = & get_instance();
+        //  insert data to secondary storage
+        $data = array('comment_text' => $text, 'comment_datetime' => $datetime, 'comment_parent_id' => $parent,
+            'post_id' => $post_id);
+        $ci->db->insert("comment", $data);
+    }
+
+}
+
+if (!function_exists('get_comment')) {
 
     function get_comment($text, $datetime, $post_id) {
         if (!(isset($text) && isset($datetime) && (isset($post_id)))) {
@@ -146,22 +205,6 @@ if (function_exists('get_comment')) {
         } else {
             return NULL;
         }
-    }
-
-}
-
-if (function_exists('vote_comment')) {
-
-    function vote_comment($id, $votes) {
-        if (!(isset($id) && isset($votes))) {
-            return;
-        }
-
-        $ci = & get_instance();
-        $data = array('comment_votes' => $votes);
-
-        $ci->db->where('comment_id', $id);
-        $ci->db->update('comment', $data);
     }
 
 }
@@ -192,7 +235,6 @@ function build_comment($record) {
     $comment = new Comment();
     $comment->id = $record->comment_id;
     $comment->text = $record->comment_text;
-    $comment->votes = $record->comment_votes;
     $comment->creation = date($record->comment_datetime);
     $comment->parent_id = $record->comment_parent_id;
 
@@ -204,7 +246,8 @@ function build_text_post($dbRecord, $text) {
 
     $post->id = $dbRecord->post_id;
     $post->title = $dbRecord->post_title;
-    $post->votes = $dbRecord->post_votes;
+    $post->upvotes = $dbRecord->post_upvotes;
+    $post->downvotes = $dbRecord->post_downvotes;
     $post->creation = $dbRecord->post_created;
     $post->text = $text;
 
@@ -216,7 +259,8 @@ function build_link_post($dbRecord, $link) {
 
     $post->id = $dbRecord->post_id;
     $post->title = $dbRecord->post_title;
-    $post->votes = $dbRecord->post_votes;
+    $post->upvotes = $dbRecord->post_upvotes;
+    $post->downvotes = $dbRecord->post_downvotes;
     $post->creation = $dbRecord->post_created;
     $post->link = $link;
 

@@ -9,14 +9,15 @@ class Welcome extends CI_Controller {
 
         $this->load->library('session');
         $this->load->helper('reddit');
+        $this->load->library("pagination");
     }
 
     /**
      * Routes the user to the index page of the system.
      */
     public function index() {
-//        $data = array("key" => get_posts());
-        $this->load->view('frontpage');
+        $data = $this->config_pagination();
+        $this->load->view('frontpage', $data);
     }
 
     public function register() {
@@ -42,9 +43,9 @@ class Welcome extends CI_Controller {
             $registered = $this->db->get()->result();
 
             if (is_array($registered) && count($registered) == 1) {
-                $retreived_id = $login[0]->user_id;
-                $retreived_username = $login[0]->user_username;
-                $retreived_email = $login[0]->user_email;
+                $retreived_id = $registered[0]->user_id;
+                $retreived_username = $registered[0]->user_username;
+                $retreived_email = $registered[0]->user_email;
 
                 //  set session user data
                 $this->session->set_userdata('loggedin', 1);
@@ -52,8 +53,8 @@ class Welcome extends CI_Controller {
                 $this->session->set_userdata('username', $retreived_username);
                 $this->session->set_userdata('email', $retreived_email);
 
-//                $data = array("key" => get_posts());
-                $this->load->view('frontpage');
+
+                $this->index();
             } else {
 
                 //  TODO: Some error message
@@ -92,13 +93,12 @@ class Welcome extends CI_Controller {
             }
         }
 
-//        $data = array("key" => get_posts());
-        $this->load->view('frontpage');
+        $this->index();
     }
 
     public function logout() {
         $this->session->sess_destroy();
-        $this->login();
+        $this->index();
     }
 
     public function share_post() {
@@ -113,8 +113,7 @@ class Welcome extends CI_Controller {
                 store_post($title, $date, 'link', filter_input(INPUT_POST, 'link'));
             }
 
-//            $data = array("key" => get_posts());
-            $this->load->view('frontpage');
+            $this->index();
         } else {
             $page = filter_input(INPUT_GET, 'page');
             if (isset($page) && $page === 'text') {
@@ -127,46 +126,61 @@ class Welcome extends CI_Controller {
         }
     }
 
-    public function vote_post() {
-        $post = filter_input(INPUT_POST, 'post');
+    public function display_post() {
+        $post_id = filter_input(INPUT_POST, 'post');
 
-        if (isset($post)) {
-            $data = array("post_object" => $post);
+        if (isset($post_id)) {
+            $data = array("post_object" => get_post($post_id));
             $this->load->view('postpage', $data);
-            vote_post($post->id, $post->votes);
+        }
+    }
+
+    public function upvote_post() {
+        $post_id = filter_input(INPUT_POST, 'post');
+        $upvotes = filter_input(INPUT_POST, 'upvotes');
+
+        if (isset($post_id) && isset($upvotes)) {
+            vote_post($post_id, $upvotes + 1, 'up');
+            $data = array("post_object" => get_post($post_id));
+            $this->load->view('postpage', $data);
+        }
+    }
+
+    public function downvote_post() {
+        $post_id = filter_input(INPUT_POST, 'post');
+        $downvotes = filter_input(INPUT_POST, 'downvotes');
+
+        if (isset($post_id) && isset($downvotes)) {
+            vote_post($post_id, $downvotes + 1, 'down');
+            $data = array("post_object" => get_post($post_id));
+            $this->load->view('postpage', $data);
         }
     }
 
     public function delete_post() {
-        $id = filter_input(INPUT_POST, 'id');
+        $post_id = filter_input(INPUT_POST, 'post');
         $type = filter_input(INPUT_POST, 'type');
 
-        delete_post($id, $type);
+        delete_post($post_id, $type);
 
-//        $data = array("key" => get_posts());
-        $this->load->view('frontpage');
+        $this->index();
     }
 
     public function add_comment() {
-        $post = filter_input(INPUT_POST, 'post');
-        $comment_text = filter_input(INPUT_POST, 'text');
-        $comment_parent = filter_input(INPUT_POST, 'parent');
+        $post = filter_input(INPUT_POST, 'post_id');
+        $comment_text = filter_input(INPUT_POST, 'comment');
+        $comment_parent = filter_input(INPUT_POST, 'parent_comment');
 
-        $datetime = date('Y-m-d H:i:s');
-        store_comment($comment_text, $datetime, $comment_parent, $post->id);
-        array_push($post->comments, get_comment($comment_text, $datetime, $post->id));
+        if (isset($post) && isset($comment_text) && isset($comment_parent)) {
+            $datetime = date('Y-m-d H:i:s');
+            store_comment($comment_text, $datetime, $comment_parent, $post);
 
-//        $data = array("key" => $post);
-        $this->load->view('postpage');
-    }
-
-    public function vote_comment() {
-        $post = filter_input(INPUT_POST, 'post');
-        $comment_id = filter_input(INPUT_POST, 'comment_id');
-
-        vote_comment($comment_id, $post->comments[index]->votes);
-//        $data = array("key" => $post);
-        $this->load->view('postpage');
+            $data = array("post_object" => get_post($post));
+            $this->load->view('postpage', $data);
+        } else {
+            $data = array("post_id" => $post, "parent_comment" => $comment_parent);
+            $this->load->view('comment', $data);
+        }
     }
 
     public function delete_comment() {
@@ -188,28 +202,36 @@ class Welcome extends CI_Controller {
         $this->load->view('postpage');
     }
 
-//    public function editPost($param) {
-//        if (isset($_POST['id']) && isset($_POST['title']) && (isset($_POST['text']) || isset($_POST['link']))) {
-//            $id = $_POST['id'];
-//            $title = $_POST['title'];
-//
-//            $post_data = array('post_title' => $title);
-//            $this->db->where('post_id', $id);
-//            $this->db->update('post', $post_data);
-//
-//            if (isset($_POST['text'])) {
-//                $text = $_POST['text'];
-//                $text_data = array('post_text' => $text);
-//                $this->db->where('post_id', $id);
-//                return $this->db->update('text_post', $text_data);
-//            } else {
-//                $link = $_POST['link'];
-//                $link_data = array('post_link' => $text);
-//                $this->db->where('post_id', $id);
-//                return $this->db->update('link_post', $link_data);
-//            }
-//        } else {
-//            return false;
-//        }
-//    }
+    public function config_pagination() {
+        $config = array();
+        $config["base_url"] = "http://" . gethostname() . "/reddit/index.php/welcome/index";
+        $config["total_rows"] = get_post_count();
+        $config["per_page"] = 5;
+        $config["num_links"] = 3;
+
+        //  link formatting
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = "</ul>";
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = "<li class='disabled'><li class='active'><a href='#'>";
+        $config['cur_tag_close'] = "<span class='sr-only'></span></a></li>";
+        $config['next_tag_open'] = "<li>";
+        $config['next_tagl_close'] = "</li>";
+        $config['prev_tag_open'] = "<li>";
+        $config['prev_tagl_close'] = "</li>";
+        $config['first_tag_open'] = "<li>";
+        $config['first_tagl_close'] = "</li>";
+        $config['last_tag_open'] = "<li>";
+        $config['last_tagl_close'] = "</li>";
+
+        $this->pagination->initialize($config);
+
+        $data = array();
+        $data["posts"] = get_posts($config["per_page"], $this->uri->segment(3));
+        $data["links"] = $this->pagination->create_links();
+
+        return $data;
+    }
+
 }

@@ -19,11 +19,17 @@ class Post extends CI_Model {
      */
     public $title;
     /**
-     * A representation of the number of votes for the post.
+     * A representation of the number of upvotes for the post.
      * 
-     * @var integer represents the number of votes for the post
+     * @var integer represents the number of upvotes for the post
      */
-    public $votes;
+    public $upvotes;
+    /**
+     * A representation of the number of downvotes for the post.
+     * 
+     * @var integer represents the number of downvotes for the post
+     */
+    public $downvotes;
     /**
      * A representation of the date-time at which the post was created.
      * 

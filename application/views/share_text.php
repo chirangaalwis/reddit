@@ -1,24 +1,37 @@
+<?php include_once 'base.php'; ?>
 <!DOCTYPE html>
 <html>
 
     <head>
         <meta charset="utf-8">
-        <title>...</title>
+        <title>Reddit | Share Post</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
 
     <body>
-        <form action="http://<?php echo gethostname(); ?>/reddit/index.php/welcome/share_post" method="post">
-            <p>
-                <label for="title">title: </label>
-                <input type="text" id="title" name="title" required><br />
+        <br>
+        <br>
+        <div class="container">
+            <h2>Reddit|Share Text</h2>
+            <form action="http://<?php echo gethostname(); ?>/reddit/index.php/welcome/share_post" method="post">
 
-                <label for="text-box">text: </label>
-                <input type="text" id="text-box" name="text" required><br />
-
+                <div class="form-group">
+                    <label for="title">Title: </label>
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter title" required>
+                </div>
+                <div class="form-group">
+                    <label for="text-box">Link: </label>
+                    <input type="text" class="form-control" id="text-box" name="text" placeholder="Enter text" required>
+                </div>
+                
                 <input type="hidden" value="text" name="type" />
 
-                <input type="submit" value="send"> <input type="reset">
-            </p>
-        </form>
+                <button type="submit" class="btn btn-default">Share</button>
+                <button type="reset" class="btn btn-default">Reset</button>
+            </form>
+        </div>
     </body>
 </html>

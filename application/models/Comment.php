@@ -19,11 +19,17 @@ class Comment extends CI_Model {
      */
     public $text;
     /**
-     * A representation of the number of votes for the comment.
+     * A representation of the number of upvotes for the comment.
      * 
-     * @var integer represents the number of votes for the comment
+     * @var integer represents the number of upvotes for the comment
      */
-    public $votes;
+    public $upvotes;
+    /**
+     * A representation of the number of downvotes for the comment.
+     * 
+     * @var integer represents the number of downvotes for the comment
+     */
+    public $downvotes;
     /**
      * A representation of the date-time at which the comment was created.
      * 
