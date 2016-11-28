@@ -86,7 +86,16 @@ if (!function_exists('get_posts')) {
     function get_posts($limit, $offset) {
         //  check the post id
         $ci = & get_instance();
-        $results = $ci->db->get('post', $limit, $offset);
+        
+        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
+        
+        $ci->db->select($query)->from('post');
+        $ci->db->order_by('post_created', 'DESC');
+        $ci->db->order_by('difference', 'DESC');
+        $ci->db->limit($limit, $offset);
+        $results = $ci->db->get();
+        
+//        $results = $ci->db->get('post', $limit, $offset);
         $posts = array();
 
         foreach ($results->result() as $post) {
