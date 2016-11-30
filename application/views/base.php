@@ -1,13 +1,34 @@
 <head>
     <style>
         body { padding-bottom: 70px; }
+        
+        body { background: rgba(3, 169, 244, 0.1) !important; }
+
+        .navbar-custom {
+            background-color: rgba(3, 169, 244, 0.4);
+            color:#fff;
+            border-radius:0;
+        }
+
+        .navbar-custom .navbar-nav > li > a {
+            color:#fff;
+            background-color: transparent;
+        }
+        .navbar-custom .navbar-nav > .active > a, .navbar-nav > .active > a:hover, .navbar-nav > .active > a:focus {
+            color: #fff;
+            background-color:transparent;
+            
+        }
+        .navbar-custom .navbar-brand {
+            color:#fff;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-inverse">
+    <nav class="navbar navbar-custom">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">Reddit</a>
+                <a class="navbar-brand text-muted" href="#">Reddit</a>
             </div>
             <ul class="nav navbar-nav">
                 <li class="active"><a href="http://<?php echo gethostname(); ?>/reddit/index.php/welcome/">Frontpage</a></li>

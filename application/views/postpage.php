@@ -10,13 +10,31 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <style>
+            .well{
+                background: #fff;
+            }
+
             .submit-button { 
                 background: none;
                 border: none;
-                color: #0066ff;
-                text-decoration: underline;
+                color: #fff;
+                text-decoration: none;
                 cursor: pointer; 
             }
+
+            .comment-submit-button { 
+                background: none;
+                border: none;
+                color: #000;
+                text-decoration: none;
+                cursor: pointer; 
+            }
+
+            .panel-default > .panel-heading {
+                background-color: rgba(3, 169, 244, 0.4);
+                color: white;
+            }
+
             form { display: inline; }
         </style>
     </head>
@@ -88,8 +106,19 @@
                                 echo '<li class="media panel-group">';
                                 $comments = reindex_array($comments);
                                 print_comment($comments, $comments[$index], $post->id);
-                                echo '</li>';
+//                                unset($comments[$index]);
+//                                echo "<pre>";
+//                                print_r($comments); // or var_dump($data);
+//                                echo "</pre>";
                             }
+
+                            echo '<li class="media panel-group">';
+                            echo '<form method="post" action="add_comment">';
+                            echo '<input type="hidden" name="post_id" value="' . $post->id . '">';
+                            echo '<input type="submit" class="comment-submit-button" value="comment">';
+                            echo '</form>';
+                            echo '</li>';
+
                             echo '</ul>';
 
                             function print_comment(&$comments, $parent_comment, $post_id) {
@@ -101,8 +130,9 @@
                                     echo '<form method="post" action="add_comment">';
                                     echo '<input type="hidden" name="post_id" value="' . $post_id . '">';
                                     echo '<input type="hidden" name="parent_comment" value="' . $parent_comment->id . '">';
-                                    echo '<input type="submit" class="submit-button" value="comment">';
+                                    echo '<input type="submit" class="comment-submit-button" value="comment">';
                                     echo '</form>';
+
 
                                     $sub_comments = get_sub_comments($comments, $parent_comment->id);
                                     if (count($sub_comments) > 0) {
@@ -128,9 +158,14 @@
                                 $index = -1;
                                 foreach ($comments as $comment) {
                                     $index++;
+                                    reindex_array($comments);
                                     if ($comment->parent_id === $parent_id) {
                                         $sub_comments[] = $comment;
+                                        echo $comment->id . ' ' . $index . '<br>';
                                         unset($comments[$index]);
+//                                        echo "<pre>";
+//                                        print_r($comments); // or var_dump($data);
+//                                        echo "</pre>";
                                     }
                                 }
                                 return $sub_comments;

@@ -17,22 +17,31 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <style>
             .well{
-                background: rgba(3, 169, 244, 0.1);
+                background: #fff;
             }
+
             .submit-button { 
                 background: none;
                 border: none;
-                color: #0066ff;
-                text-decoration: underline;
+                color: #fff;
+                text-decoration: none;
                 cursor: pointer; 
+            }
+
+            .panel-default > .panel-heading {
+                background-color: rgba(3, 169, 244, 0.4);
+                color: white;
+            }
+            
+            .panel-default > .panel-body {
+                border-color: rgba(3, 169, 244, 0.4);
             }
         </style>
     </head>
 
     <body>
         <br>
-        <br>
-        <br>
+
         <?php if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) : ?>
 
             <div class="container">
@@ -44,7 +53,7 @@
                             echo '<div class="panel-heading">';
                             echo '<form method="post" action="http://' . gethostname() . '/reddit/index.php/welcome/display_post">';
                             echo '<input type="hidden" name="post" value="' . $posts[$index][0]->id . '">';
-                            echo '<input type="submit" class="submit-button" value="' . $posts[$index][0]->title . '">';
+                            echo '<h4><input type="submit" class="submit-button" value="' . $posts[$index][0]->title . '"></h4>';
                             echo '</form>';
                             echo '</div>';
                             echo '<div class="panel-body">Community Rating: ' . ($posts[$index][0]->upvotes - $posts[$index][0]->downvotes) . ' | Submitted on ' . $posts[$index][0]->creation . '</div>';
@@ -67,8 +76,6 @@
                 <?php echo $links; ?>
             </div>
         <?php else: ?>
-            <br>
-            <br>
             <div class="container">
                 <h2>Reddit|Sign-In</h2>
                 <form action="http://<?php echo gethostname(); ?>/reddit/index.php/welcome/login" method="post">

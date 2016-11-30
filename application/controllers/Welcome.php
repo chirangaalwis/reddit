@@ -171,9 +171,13 @@ class Welcome extends CI_Controller {
         $comment_text = filter_input(INPUT_POST, 'comment');
         $comment_parent = filter_input(INPUT_POST, 'parent_comment');
 
-        if (isset($post) && isset($comment_text) && isset($comment_parent)) {
+        if (isset($post) && isset($comment_text)) {
             $datetime = date('Y-m-d H:i:s');
-            store_comment($comment_text, $datetime, $comment_parent, $post);
+            if(isset($comment_parent)) {
+                store_comment($comment_text, $datetime, $comment_parent, $post);
+            } else {
+                store_comment($comment_text, $datetime, NULL, $post);
+            }
 
             $data = array("post_object" => get_post($post));
             $this->load->view('postpage', $data);
