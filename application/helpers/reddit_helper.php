@@ -86,55 +86,46 @@ if (!function_exists('get_posts')) {
     function get_posts($limit, $offset) {
         //  check the post id
         $ci = & get_instance();
-        
+
         $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
-        
+
         $ci->db->select($query)->from('post');
         $ci->db->order_by('post_created', 'DESC');
         $ci->db->order_by('difference', 'DESC');
         $ci->db->limit($limit, $offset);
         $results = $ci->db->get();
-        
-//        $results = $ci->db->get('post', $limit, $offset);
-        $posts = array();
 
-        foreach ($results->result() as $post) {
-            $ci->db->from('comment');
-            $ci->db->where('post_id', $post->post_id);
+        return build_posts($results);
+    }
 
-            $comments = build_comments($ci->db->get()->result());
+}
 
-            $ci->db->from('text_post');
-            $ci->db->where('post_id', $post->post_id);
-            $text_posts = $ci->db->get()->result();
+if (!function_exists('get_user_posts')) {
 
-            if (is_array($text_posts) && count($text_posts) == 1) {
-                $text_post = build_text_post($post, $text_posts[0]->post_text);
-                $text_post->comments = $comments;
-                $posts[] = array($text_post);
-            } else {
-                $ci->db->from('link_post');
-                $ci->db->where('post_id', $post->post_id);
-                $link_posts = $ci->db->get()->result();
+    function get_user_posts($user_id) {
+        //  check the post id
+        $ci = & get_instance();
 
-                if (is_array($link_posts) && count($link_posts) == 1) {
-                    $link_post = build_link_post($post, $link_posts[0]->post_link);
-                    $link_post->comments = $comments;
-                    $posts[] = array($link_post);
-                }
-            }
-        }
+        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
 
-        return $posts;
+        $ci->db->select($query)->from('post');
+        $ci->db->where('user_id', $user_id);
+        $ci->db->order_by('post_created', 'DESC');
+        $ci->db->order_by('difference', 'DESC');
+        $results = $ci->db->get();
+
+        return build_posts($results);
     }
 
 }
 
 if (!function_exists('get_post_count')) {
+
     function get_post_count() {
         $ci = & get_instance();
         return $ci->db->count_all("post");
     }
+
 }
 
 if (!function_exists('vote_post')) {
@@ -184,11 +175,11 @@ if (!function_exists('delete_post')) {
 
 if (!function_exists('store_comment')) {
 
-    function store_comment($text, $datetime, $parent, $post_id) {
+    function store_comment($text, $datetime, $parent, $post_id, $user_id) {
         $ci = & get_instance();
         //  insert data to secondary storage
         $data = array('comment_text' => $text, 'comment_datetime' => $datetime, 'comment_parent_id' => $parent,
-            'post_id' => $post_id);
+            'post_id' => $post_id, 'user_id' => $user_id);
         $ci->db->insert("comment", $data);
     }
 
@@ -218,6 +209,21 @@ if (!function_exists('get_comment')) {
 
 }
 
+if (!function_exists('get_user_comments')) {
+    
+    function get_user_comments($user_id) {
+        $ci = & get_instance();
+
+        //  get the post id of the newly stored post
+        $ci->db->from('comment');
+        $ci->db->where('user_id', $user_id);
+        $result = $ci->db->get()->result();
+
+        return build_comments($result);
+    }
+    
+}
+
 if (!function_exists('delete_comment')) {
 
     function delete_comment($comment_id) {
@@ -245,9 +251,47 @@ function build_comment($record) {
     $comment->id = $record->comment_id;
     $comment->text = $record->comment_text;
     $comment->creation = date($record->comment_datetime);
+    $comment->upvotes = $record->comment_upvotes;
+    $comment->downvotes = $record->comment_downvotes;
     $comment->parent_id = $record->comment_parent_id;
+    $comment->user_id = $record->user_id;
 
     return $comment;
+}
+
+function build_posts($dbRecords) {
+    $ci = & get_instance();
+    
+    $posts = array();
+
+    foreach ($dbRecords->result() as $post) {
+        $ci->db->from('comment');
+        $ci->db->where('post_id', $post->post_id);
+
+        $comments = build_comments($ci->db->get()->result());
+
+        $ci->db->from('text_post');
+        $ci->db->where('post_id', $post->post_id);
+        $text_posts = $ci->db->get()->result();
+
+        if (is_array($text_posts) && count($text_posts) == 1) {
+            $text_post = build_text_post($post, $text_posts[0]->post_text);
+            $text_post->comments = $comments;
+            $posts[] = array($text_post);
+        } else {
+            $ci->db->from('link_post');
+            $ci->db->where('post_id', $post->post_id);
+            $link_posts = $ci->db->get()->result();
+
+            if (is_array($link_posts) && count($link_posts) == 1) {
+                $link_post = build_link_post($post, $link_posts[0]->post_link);
+                $link_post->comments = $comments;
+                $posts[] = array($link_post);
+            }
+        }
+    }
+
+    return $posts;
 }
 
 function build_text_post($dbRecord, $text) {

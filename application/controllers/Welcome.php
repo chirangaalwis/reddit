@@ -23,12 +23,7 @@ class Welcome extends CI_Controller {
     public function register() {
         if (isset($_POST['username']) && isset($_POST['password']) && ($_POST['email'])) {
             $username = $_POST['username'];
-
-
-            //  TODO: Do password hashing
             $password = $_POST['password'];
-
-
             $email_address = $_POST['email'];
 
             //  insert data to secondary storage
@@ -69,7 +64,6 @@ class Welcome extends CI_Controller {
         if (isset($_POST['username']) && isset($_POST['password'])) {
             $username = $_POST['username'];
 
-            //  TODO: Do password hashing
             $password = $_POST['password'];
 
             $this->db->from('user');
@@ -91,9 +85,35 @@ class Welcome extends CI_Controller {
 
                 //  TODO: Some error message
             }
+        } else {
+            $this->load->view('login');
+            return;
         }
 
         $this->index();
+    }
+
+    public function profile() {
+        if (isset($this->session->username)) {
+            $username = $this->session->username;
+
+            $this->db->from('user');
+            $this->db->where('user_username', $username);
+            $result = $this->db->get()->result();
+
+            if (is_array($result) && count($result) == 1) {
+                $retreived_id = $result[0]->user_id;
+
+                $data = array("posts" => get_user_posts($retreived_id), 
+                    "comments" => get_user_comments($retreived_id));
+                $this->load->view('profilepage', $data);
+            } else {
+
+                //  TODO: Some error message
+            }
+        } else {
+            $this->index();
+        }
     }
 
     public function logout() {
@@ -171,12 +191,22 @@ class Welcome extends CI_Controller {
         $comment_text = filter_input(INPUT_POST, 'comment');
         $comment_parent = filter_input(INPUT_POST, 'parent_comment');
 
+        $username = $this->session->username;
+
+        $this->db->from('user');
+        $this->db->where('user_username', $username);
+        $result = $this->db->get()->result();
+
+        if (is_array($result) && count($result) == 1) {
+            $retreived_id = $result[0]->user_id;
+        }
+
         if (isset($post) && isset($comment_text)) {
             $datetime = date('Y-m-d H:i:s');
-            if(isset($comment_parent)) {
-                store_comment($comment_text, $datetime, $comment_parent, $post);
+            if (isset($comment_parent)) {
+                store_comment($comment_text, $datetime, $comment_parent, $post, $retreived_id);
             } else {
-                store_comment($comment_text, $datetime, NULL, $post);
+                store_comment($comment_text, $datetime, NULL, $post, $retreived_id);
             }
 
             $data = array("post_object" => get_post($post));
@@ -206,7 +236,7 @@ class Welcome extends CI_Controller {
         $this->load->view('postpage');
     }
 
-    public function config_pagination() {
+    private function config_pagination() {
         $config = array();
         $config["base_url"] = "http://" . gethostname() . "/reddit/index.php/welcome/index";
         $config["total_rows"] = get_post_count();

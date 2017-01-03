@@ -41,6 +41,7 @@
                     }
                     echo '<span class="caret"></span>';
                     echo '<ul class="dropdown-menu">';
+                    echo '<li><a href="http://' . gethostname() . '/reddit/index.php/welcome/profile">My Profile</a></li>';
                     echo '<li><a href="http://' . gethostname() . '/reddit/index.php/welcome/logout">Logout</a></li>';
                     echo '</ul>';
                     echo '</a>';
