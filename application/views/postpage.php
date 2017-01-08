@@ -1,7 +1,7 @@
 <?php include_once 'base.php'; ?>
 <!DOCTYPE html>
 <html>
-    
+
     <head>
         <meta charset="utf-8">
         <title>Reddit | Read-Vote-Comment</title>
@@ -13,7 +13,7 @@
             .well{
                 background: #fff;
             }
-            
+
             .submit-button { 
                 background: none;
                 border: none;
@@ -21,7 +21,7 @@
                 text-decoration: none;
                 cursor: pointer; 
             }
-            
+
             .comment-submit-button { 
                 background: none;
                 border: none;
@@ -29,16 +29,16 @@
                 text-decoration: none;
                 cursor: pointer; 
             }
-            
+
             .panel-default > .panel-heading {
                 background-color: rgba(3, 169, 244, 0.4);
                 color: white;
             }
-            
+
             form { display: inline; }
         </style>
     </head>
-    
+
     <body>
         <br>
         <br>
@@ -50,36 +50,40 @@
                     ?>
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <?php echo $post->title . ' '; ?>
-                            <form action="<?php echo ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) ? 
-                            "http://" . gethostname() . "/reddit/index.php/welcome/upvote_post" : "login" ?>" method="post">
-                                <?php
-                                echo '<input type="hidden" name="post" value="' . $post->id . '">';
-                                echo '<input type="hidden" name="upvotes" value="' . $post->upvotes . '">';
-                                echo '<input type="submit" class="submit-button" value="upvote">';
-                                echo '  ';
-                                ?>
-                            </form>
-                            
-                            <form action="<?php echo ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) ? 
-                            "http://" . gethostname() . "/reddit/index.php/welcome/downvote_post" : "login" ?>" method="post">
-                                <?php
-                                echo '<input type="hidden" name="post" value="' . $post->id . '">';
-                                echo '<input type="hidden" name="downvotes" value="' . $post->downvotes . '">';
-                                echo '<input type="submit" class="submit-button" value="downvote">';
-                                echo '  ';
-                                ?>
-                            </form>
-                            
-                            
-                            <form action="<?php echo ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) ? 
-                            "http://" . gethostname() . "/reddit/index.php/welcome/delete_post" : "login" ?>" method="post">
-                                <?php
-                                echo '<input type="hidden" name="post" value="' . $post->id . '">';
-                                echo '<input type="hidden" name="type" value="' . strtolower(get_class($post)) . '">';
-                                echo '<input type="submit" class="submit-button" value="delete">';
-                                ?>
-                            </form>
+                            <?php
+                            echo $post->title . ' ';
+                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
+                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/upvote_post" method="post">';
+                            } else {
+                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
+                            }
+                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
+                            echo '<input type="hidden" name="upvotes" value="' . $post->upvotes . '">';
+                            echo '<input type="submit" class="submit-button" value="upvote">';
+                            echo '  ';
+                            echo '</form>';
+
+                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
+                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/downvote_post" method="post">';
+                            } else {
+                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
+                            }
+                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
+                            echo '<input type="hidden" name="downvotes" value="' . $post->downvotes . '">';
+                            echo '<input type="submit" class="submit-button" value="downvote">';
+                            echo '  ';
+                            echo '</form>';
+
+                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
+                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/delete_post" method="post">';
+                            } else {
+                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
+                            }
+                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
+                            echo '<input type="hidden" name="type" value="' . strtolower(get_class($post)) . '">';
+                            echo '<input type="submit" class="submit-button" value="delete">';
+                            echo '</form>';
+                            ?>
 
                         </div>
                         <div class="panel-body">

@@ -12,8 +12,8 @@ if (!function_exists('store_post')) {
         }
 
         //  insert original post data to secondary storage
-        $data = array('post_title' => $title, 'post_upvotes' => 0, 'post_downvotes' => 0,
-            'post_created' => $datetime, 'user_id' => $ci->session->userdata('user_id'));
+        $data = array('post_title' => $title, 'post_created' => $datetime,
+            'user_id' => $ci->session->userdata('user_id'));
         $ci->db->insert("post", $data);
 
         //  get the post id of the newly stored post
@@ -210,7 +210,7 @@ if (!function_exists('get_comment')) {
 }
 
 if (!function_exists('get_user_comments')) {
-    
+
     function get_user_comments($user_id) {
         $ci = & get_instance();
 
@@ -221,7 +221,7 @@ if (!function_exists('get_user_comments')) {
 
         return build_comments($result);
     }
-    
+
 }
 
 if (!function_exists('delete_comment')) {
@@ -251,17 +251,25 @@ function build_comment($record) {
     $comment->id = $record->comment_id;
     $comment->text = $record->comment_text;
     $comment->creation = date($record->comment_datetime);
-    $comment->upvotes = $record->comment_upvotes;
-    $comment->downvotes = $record->comment_downvotes;
+    $comment->upvotes = get_comment_votes($comment->id, 'UPVOTE');
+    $comment->downvotes = get_comment_votes($comment->id, 'DOWNVOTE');
     $comment->parent_id = $record->comment_parent_id;
     $comment->user_id = $record->user_id;
 
     return $comment;
 }
 
+function get_comment_votes($comment_id, $type) {
+    $this->db->from('comment_votes');
+    $this->db->where('comment_id', $comment_id);
+    $this->db->where('vote_type', $type);
+    
+    return $this->db->get()->num_rows();
+}
+
 function build_posts($dbRecords) {
     $ci = & get_instance();
-    
+
     $posts = array();
 
     foreach ($dbRecords->result() as $post) {

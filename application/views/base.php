@@ -25,7 +25,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-custom">
+    <nav id="base-nav" class="navbar navbar-custom">
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand text-muted" href="#">Reddit</a>
@@ -42,7 +42,7 @@
                     echo '<span class="caret"></span>';
                     echo '<ul class="dropdown-menu">';
                     echo '<li><a href="http://' . gethostname() . '/reddit/index.php/welcome/profile">My Profile</a></li>';
-                    echo '<li><a href="http://' . gethostname() . '/reddit/index.php/welcome/logout">Logout</a></li>';
+                    echo '<li><a id="logout" href="#">Logout</a></li>';
                     echo '</ul>';
                     echo '</a>';
                     echo '</li>';

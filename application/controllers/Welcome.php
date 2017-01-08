@@ -20,6 +20,37 @@ class Welcome extends CI_Controller {
         $this->load->view('frontpage', $data);
     }
 
+    public function sessions() {
+        if ($this->input->server('REQUEST_METHOD') == 'POST') {
+            $this->login();
+        } elseif ($this->input->server('REQUEST_METHOD') == 'GET') {
+            $this->index();
+        } elseif ($this->input->server('REQUEST_METHOD') == 'DELETE') {
+            $this->session->sess_destroy();
+        }
+    }
+
+    public function login() {
+        $username = filter_input(INPUT_POST, 'username');
+        $password = filter_input(INPUT_POST, 'password');
+
+        if (isset($username) && isset($password)) {
+            $user = new User();
+            $user->username = $username;
+            $user->password = $password;
+
+            if ($user->authenticate()) {
+                //  set session user data
+                $this->session->set_userdata('loggedin', 1);
+                $this->session->set_userdata('user_id', $user->id);
+                $this->session->set_userdata('username', $user->username);
+                $this->session->set_userdata('email', $user->email_address);
+
+                return;
+            }
+        }
+    }
+
     public function register() {
         if (isset($_POST['username']) && isset($_POST['password']) && ($_POST['email'])) {
             $username = $_POST['username'];
@@ -60,65 +91,15 @@ class Welcome extends CI_Controller {
         }
     }
 
-    public function login() {
-        if (isset($_POST['username']) && isset($_POST['password'])) {
-            $username = $_POST['username'];
-
-            $password = $_POST['password'];
-
-            $this->db->from('user');
-            $this->db->where('user_username', $username);
-            $this->db->where('user_password', $password);
-            $login = $this->db->get()->result();
-
-            if (is_array($login) && count($login) == 1) {
-                $retreived_id = $login[0]->user_id;
-                $retreived_username = $login[0]->user_username;
-                $retreived_email = $login[0]->user_email;
-
-                //  set session user data
-                $this->session->set_userdata('loggedin', 1);
-                $this->session->set_userdata('user_id', $retreived_id);
-                $this->session->set_userdata('username', $retreived_username);
-                $this->session->set_userdata('email', $retreived_email);
-            } else {
-
-                //  TODO: Some error message
-            }
-        } else {
-            $this->load->view('login');
-            return;
-        }
-
-        $this->index();
-    }
-
     public function profile() {
         if (isset($this->session->username)) {
-            $username = $this->session->username;
-
-            $this->db->from('user');
-            $this->db->where('user_username', $username);
-            $result = $this->db->get()->result();
-
-            if (is_array($result) && count($result) == 1) {
-                $retreived_id = $result[0]->user_id;
-
-                $data = array("posts" => get_user_posts($retreived_id), 
-                    "comments" => get_user_comments($retreived_id));
-                $this->load->view('profilepage', $data);
-            } else {
-
-                //  TODO: Some error message
-            }
+            $retreived_id = $this->session->user_id;
+            $data = array("posts" => get_user_posts($retreived_id),
+                "comments" => get_user_comments($retreived_id));
+            $this->load->view('profilepage', $data);
         } else {
             $this->index();
         }
-    }
-
-    public function logout() {
-        $this->session->sess_destroy();
-        $this->index();
     }
 
     public function share_post() {
