@@ -27,6 +27,7 @@ class Welcome extends CI_Controller {
             $this->index();
         } elseif ($this->input->server('REQUEST_METHOD') == 'DELETE') {
             $this->session->sess_destroy();
+            $this->index();
         }
     }
 
@@ -116,7 +117,7 @@ class Welcome extends CI_Controller {
             $upvote_number = get_post_votes($post_id, 'UPVOTE');
             $downvote_number = get_post_votes($post_id, 'DOWNVOTE');
             $response_data = array('upvotes' => $upvote_number, 'downvotes' => $downvote_number);
-            
+
             echo json_encode($response_data);
         } else {
             $response_data = array();
@@ -165,6 +166,28 @@ class Welcome extends CI_Controller {
         delete_post($post_id, $type);
 
         $this->index();
+    }
+
+    public function comment_votes() {
+        if ($this->input->server('REQUEST_METHOD') == 'POST') {
+            $this->add_comment_vote();
+        }
+    }
+
+    public function add_comment_vote() {
+        $comment_id = filter_input(INPUT_POST, 'comment');
+        $vote = filter_input(INPUT_POST, 'type');
+        if (isset($comment_id) && isset($vote)) {
+            vote_comment($comment_id, $vote);
+            $upvote_number = get_comment_votes($comment_id, 'UPVOTE');
+            $downvote_number = get_comment_votes($comment_id, 'DOWNVOTE');
+            $response_data = array('upvotes' => $upvote_number, 'downvotes' => $downvote_number);
+
+            echo json_encode($response_data);
+        } else {
+            $response_data = array();
+            echo json_encode($response_data);
+        }
     }
 
     public function add_comment() {

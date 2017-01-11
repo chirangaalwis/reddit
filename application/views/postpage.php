@@ -37,14 +37,21 @@
 
             form { display: inline; }
 
-            /*voting style */
             .voting-wrapper {display:inline-block;margin-left}
-            .voting-wrapper #down-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat;float: left;height: 14px;width: 16px;cursor:pointer;margin-top: 3px;}
-            .voting-wrapper #down-button:hover {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat 0px -16px;}
-            .voting-wrapper #up-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px 0px;float: left;height: 14px;width: 16px;cursor:pointer;}
-            .voting-wrapper #up-button:hover{background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px -16px;;}
+            .voting-wrapper .down-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat;float: left;height: 14px;width: 16px;cursor:pointer;margin-top: 3px;}
+            .voting-wrapper .down-button:hover {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat 0px -16px;}
+            .voting-wrapper .up-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px 0px;float: left;height: 14px;width: 16px;cursor:pointer;}
+            .voting-wrapper .up-button:hover{background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px -16px;;}
             .voting-btn{float:left;margin-right:5px;}
             .voting-btn span{font-size: 11px;float: left;margin-left: 3px;}
+            
+            .comment-voting-wrapper {display:inline-block;margin-left}
+            .comment-voting-wrapper .comment-down-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat;float: left;height: 14px;width: 16px;cursor:pointer;margin-top: 3px;}
+            .comment-voting-wrapper .comment-down-button:hover {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat 0px -16px;}
+            .comment-voting-wrapper .comment-up-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px 0px;float: left;height: 14px;width: 16px;cursor:pointer;}
+            .comment-voting-wrapper .comment-up-button:hover{background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px -16px;;}
+            .comment-voting-btn{float:left;margin-right:5px;}
+            .comment-voting-btn span{font-size: 11px;float: left;margin-left: 3px;}
         </style>
     </head>
 
@@ -61,27 +68,6 @@
                         <div class="panel-heading">
                             <?php
                             echo $post->title . ' ';
-//                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
-//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/upvote_post" method="post">';
-//                            } else {
-//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
-//                            }
-//                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
-//                            echo '<input type="hidden" name="upvotes" value="' . $post->upvotes . '">';
-//                            echo '<input type="submit" class="submit-button" value="upvote">';
-//                            echo '  ';
-//                            echo '</form>';
-//
-//                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
-//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/downvote_post" method="post">';
-//                            } else {
-//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
-//                            }
-//                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
-//                            echo '<input type="hidden" name="downvotes" value="' . $post->downvotes . '">';
-//                            echo '<input type="submit" class="submit-button" value="downvote">';
-//                            echo '  ';
-//                            echo '</form>';
 
                             if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
                                 echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/delete_post" method="post">';
@@ -111,16 +97,24 @@
                             <div>
                                 Submitted on <?php echo $post->creation; ?>
                             </div>
-                            <!-- voting markup -->
-                            <div class="voting-wrapper" id="voting-machine">
-                                <div class="voting-btn">
-                                    <div id="up-button">&nbsp;</div><span id="up-votes"><?php echo $post->upvotes; ?></span>
+
+                            <?php
+                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
+                                ?>
+                                <!-- voting markup -->
+                                <div class="voting-wrapper" id="voting-machine">
+                                    <div class="voting-btn">
+                                        <div class="up-button">&nbsp;</div><span id="up-votes"><?php echo $post->upvotes; ?></span>
+                                    </div>
+                                    <div class="voting-btn">
+                                        <div class="down-button">&nbsp;</div><span id="down-votes"><?php echo $post->downvotes; ?></span>
+                                    </div>
                                 </div>
-                                <div class="voting-btn">
-                                    <div id="down-button">&nbsp;</div><span id="down-votes"><?php echo $post->downvotes; ?></span>
-                                </div>
-                            </div>
-                            <!-- voting markup end -->
+                                <!-- voting markup end -->
+
+                                <?php
+                            }
+                            ?>
                         </div>
                     </div>
                 </div>
@@ -159,9 +153,17 @@
                                     echo '<form method="post" action="add_comment">';
                                     echo '<input type="hidden" name="post_id" value="' . $post_id . '">';
                                     echo '<input type="hidden" name="parent_comment" value="' . $parent_comment->id . '">';
-                                    echo '<input type="submit" class="comment-submit-button" value="comment">';
+                                    echo '<input type="submit" class="comment-submit-button" value="reply">';
                                     echo '</form>';
 
+                                    echo '<div class="comment-voting-wrapper">';
+                                    echo '<div class="comment-voting-btn">';
+                                    echo '<div class="comment-up-button" id="' . $parent_comment->id . '">&nbsp;</div><span id="comment-up-votes-' . $parent_comment->id . '">' . $parent_comment->upvotes . '</span>';
+                                    echo '</div>';
+                                    echo '<div class="comment-voting-btn">';
+                                    echo '<div class="comment-down-button" id="' . $parent_comment->id . '">&nbsp;</div><span id="comment-down-votes-' . $parent_comment->id . '">' . $parent_comment->downvotes . '</span>';
+                                    echo '</div>';
+                                    echo '</div>';
 
                                     $sub_comments = get_sub_comments($comments, $parent_comment->id);
                                     if (count($sub_comments) > 0) {
@@ -216,7 +218,7 @@
             $(document).ready(function () {
                 $("#voting-machine").click(function (event) {
                     event.preventDefault();
-                    var clicked_button = event.target.id;
+                    var clicked_button = event.target.className;
 
                     if (clicked_button === 'down-button') //user disliked the content
                     {
@@ -241,6 +243,39 @@
                                 $('#down-votes').text(response.downvotes);
                                 $('#up-votes').text(response.upvotes);
                                 $('#rating').text('Community Rating: ' + (response.upvotes - response.downvotes));
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).ready(function () {
+                $(".comment-voting-wrapper").click(function (event) {
+                    event.preventDefault();
+                    var clicked_button = event.target.id;
+                    var clicked_button_class = event.target.className;
+
+                    if (clicked_button_class === 'comment-down-button')
+                    {
+                        $.ajax({
+                            method: "POST",
+                            url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/comment_votes",
+                            data: {comment: clicked_button, type: 'DOWNVOTE'},
+                            dataType: 'json',
+                            success: function (response) {
+                                $('#comment-down-votes-' + clicked_button).text(response.downvotes);
+                                $('#comment-up-votes-' + clicked_button).text(response.upvotes);
+                            }
+                        });
+                    } else if (clicked_button_class === 'comment-up-button') {
+                        $.ajax({
+                            method: "POST",
+                            url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/comment_votes",
+                            data: {comment: clicked_button, type: 'UPVOTE'},
+                            dataType: 'json',
+                            success: function (response) {
+                                $('#comment-down-votes-' + clicked_button).text(response.downvotes);
+                                $('#comment-up-votes-' + clicked_button).text(response.upvotes);
                             }
                         });
                     }

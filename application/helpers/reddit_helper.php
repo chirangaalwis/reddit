@@ -213,6 +213,26 @@ if (!function_exists('get_comment')) {
 
 }
 
+if (!function_exists('vote_comment')) {
+
+    function vote_comment($id, $type) {
+        if (!(isset($id) && isset($type))) {
+            return;
+        }
+
+        $ci = & get_instance();
+        $ci->db->delete('comment_vote', array('user_id' => $ci->session->userdata('user_id'), 'comment_id' => $id));
+        
+        if ($type == 'UPVOTE') {
+            $data = array('user_id' => $ci->session->userdata('user_id'), 'comment_id' => $id, 'vote_type' => 'UPVOTE');
+        } else {
+            $data = array('user_id' => $ci->session->userdata('user_id'), 'comment_id' => $id, 'vote_type' => 'DOWNVOTE');
+        }
+        $ci->db->insert("comment_vote", $data);
+    }
+
+}
+
 if (!function_exists('get_user_comments')) {
 
     function get_user_comments($user_id) {
