@@ -102,6 +102,28 @@ class Welcome extends CI_Controller {
         }
     }
 
+    public function post_votes() {
+        if ($this->input->server('REQUEST_METHOD') == 'POST') {
+            $this->add_post_vote();
+        }
+    }
+
+    public function add_post_vote() {
+        $post_id = filter_input(INPUT_POST, 'post');
+        $vote = filter_input(INPUT_POST, 'type');
+        if (isset($post_id) && isset($vote)) {
+            vote_post($post_id, $vote);
+            $upvote_number = get_post_votes($post_id, 'UPVOTE');
+            $downvote_number = get_post_votes($post_id, 'DOWNVOTE');
+            $response_data = array('upvotes' => $upvote_number, 'downvotes' => $downvote_number);
+            
+            echo json_encode($response_data);
+        } else {
+            $response_data = array();
+            echo json_encode($response_data);
+        }
+    }
+
     public function share_post() {
         $title = filter_input(INPUT_POST, 'title');
         $type = filter_input(INPUT_POST, 'type');
@@ -136,28 +158,6 @@ class Welcome extends CI_Controller {
         }
     }
 
-    public function upvote_post() {
-        $post_id = filter_input(INPUT_POST, 'post');
-        $upvotes = filter_input(INPUT_POST, 'upvotes');
-
-        if (isset($post_id) && isset($upvotes)) {
-            vote_post($post_id, $upvotes + 1, 'up');
-            $data = array("post_object" => get_post($post_id));
-            $this->load->view('postpage', $data);
-        }
-    }
-
-    public function downvote_post() {
-        $post_id = filter_input(INPUT_POST, 'post');
-        $downvotes = filter_input(INPUT_POST, 'downvotes');
-
-        if (isset($post_id) && isset($downvotes)) {
-            vote_post($post_id, $downvotes + 1, 'down');
-            $data = array("post_object" => get_post($post_id));
-            $this->load->view('postpage', $data);
-        }
-    }
-
     public function delete_post() {
         $post_id = filter_input(INPUT_POST, 'post');
         $type = filter_input(INPUT_POST, 'type');
@@ -172,22 +172,12 @@ class Welcome extends CI_Controller {
         $comment_text = filter_input(INPUT_POST, 'comment');
         $comment_parent = filter_input(INPUT_POST, 'parent_comment');
 
-        $username = $this->session->username;
-
-        $this->db->from('user');
-        $this->db->where('user_username', $username);
-        $result = $this->db->get()->result();
-
-        if (is_array($result) && count($result) == 1) {
-            $retreived_id = $result[0]->user_id;
-        }
-
         if (isset($post) && isset($comment_text)) {
             $datetime = date('Y-m-d H:i:s');
             if (isset($comment_parent)) {
-                store_comment($comment_text, $datetime, $comment_parent, $post, $retreived_id);
+                store_comment($comment_text, $datetime, $comment_parent, $post, $this->session->user_id);
             } else {
-                store_comment($comment_text, $datetime, NULL, $post, $retreived_id);
+                store_comment($comment_text, $datetime, NULL, $post, $this->session->user_id);
             }
 
             $data = array("post_object" => get_post($post));

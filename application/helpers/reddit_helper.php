@@ -87,11 +87,11 @@ if (!function_exists('get_posts')) {
         //  check the post id
         $ci = & get_instance();
 
-        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
+//        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
 
-        $ci->db->select($query)->from('post');
+        $ci->db->from('post');
         $ci->db->order_by('post_created', 'DESC');
-        $ci->db->order_by('difference', 'DESC');
+//        $ci->db->order_by('difference', 'DESC');
         $ci->db->limit($limit, $offset);
         $results = $ci->db->get();
 
@@ -106,12 +106,12 @@ if (!function_exists('get_user_posts')) {
         //  check the post id
         $ci = & get_instance();
 
-        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
+//        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
 
-        $ci->db->select($query)->from('post');
+        $ci->db->from('post');
         $ci->db->where('user_id', $user_id);
         $ci->db->order_by('post_created', 'DESC');
-        $ci->db->order_by('difference', 'DESC');
+//        $ci->db->order_by('difference', 'DESC');
         $results = $ci->db->get();
 
         return build_posts($results);
@@ -130,23 +130,25 @@ if (!function_exists('get_post_count')) {
 
 if (!function_exists('vote_post')) {
 
-    function vote_post($id, $votes, $type) {
-        if (!(isset($id) && isset($votes))) {
+    function vote_post($id, $type) {
+        if (!(isset($id) && isset($type))) {
             return;
         }
 
         $ci = & get_instance();
-        if ($type == 'up') {
-            $data = array('post_upvotes' => $votes);
+        $ci->db->delete('post_vote', array('user_id' => $ci->session->userdata('user_id'), 'post_id' => $id));
+        
+        if ($type == 'UPVOTE') {
+            $data = array('user_id' => $ci->session->userdata('user_id'), 'post_id' => $id, 'vote_type' => 'UPVOTE');
         } else {
-            $data = array('post_downvotes' => $votes);
+            $data = array('user_id' => $ci->session->userdata('user_id'), 'post_id' => $id, 'vote_type' => 'DOWNVOTE');
         }
-
-        $ci->db->where('post_id', $id);
-        $ci->db->update('post', $data);
+        $ci->db->insert("post_vote", $data);
     }
 
 }
+
+
 
 if (!function_exists('delete_post')) {
 
@@ -154,6 +156,8 @@ if (!function_exists('delete_post')) {
         $ci = & get_instance();
 
         if (isset($post_id) && isset($type)) {
+            //  delete post votes
+            $ci->db->delete('post_vote', array('post_id' => $post_id));
             //  delete comments
             $ci->db->delete('comment', array('post_id' => $post_id));
 
@@ -230,6 +234,8 @@ if (!function_exists('delete_comment')) {
         $ci = & get_instance();
 
         if (isset($comment_id)) {
+            $ci->db->delete('comment_vote', array('comment_id' => $comment_id));
+            $ci->db->delete('comment', array('comment_parent_id' => $comment_id));
             $ci->db->delete('comment', array('comment_id' => $comment_id));
         }
     }
@@ -260,11 +266,13 @@ function build_comment($record) {
 }
 
 function get_comment_votes($comment_id, $type) {
-    $this->db->from('comment_votes');
-    $this->db->where('comment_id', $comment_id);
-    $this->db->where('vote_type', $type);
+    $ci = & get_instance();
     
-    return $this->db->get()->num_rows();
+    $ci->db->from('comment_vote');
+    $ci->db->where('comment_id', $comment_id);
+    $ci->db->where('vote_type', $type);
+    
+    return $ci->db->get()->num_rows();
 }
 
 function build_posts($dbRecords) {
@@ -307,8 +315,8 @@ function build_text_post($dbRecord, $text) {
 
     $post->id = $dbRecord->post_id;
     $post->title = $dbRecord->post_title;
-    $post->upvotes = $dbRecord->post_upvotes;
-    $post->downvotes = $dbRecord->post_downvotes;
+    $post->upvotes = get_post_votes($post->id, 'UPVOTE');
+    $post->downvotes = get_post_votes($post->id, 'DOWNVOTE');
     $post->creation = $dbRecord->post_created;
     $post->text = $text;
 
@@ -320,10 +328,20 @@ function build_link_post($dbRecord, $link) {
 
     $post->id = $dbRecord->post_id;
     $post->title = $dbRecord->post_title;
-    $post->upvotes = $dbRecord->post_upvotes;
-    $post->downvotes = $dbRecord->post_downvotes;
+    $post->upvotes = get_post_votes($post->id, 'UPVOTE');
+    $post->downvotes = get_post_votes($post->id, 'DOWNVOTE');
     $post->creation = $dbRecord->post_created;
     $post->link = $link;
 
     return $post;
+}
+
+function get_post_votes($post_id, $type) {
+    $ci = & get_instance();
+    
+    $ci->db->from('post_vote');
+    $ci->db->where('post_id', $post_id);
+    $ci->db->where('vote_type', $type);
+    
+    return $ci->db->get()->num_rows();
 }

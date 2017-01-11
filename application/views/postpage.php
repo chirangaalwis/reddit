@@ -36,6 +36,15 @@
             }
 
             form { display: inline; }
+
+            /*voting style */
+            .voting-wrapper {display:inline-block;margin-left}
+            .voting-wrapper #down-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat;float: left;height: 14px;width: 16px;cursor:pointer;margin-top: 3px;}
+            .voting-wrapper #down-button:hover {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat 0px -16px;}
+            .voting-wrapper #up-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px 0px;float: left;height: 14px;width: 16px;cursor:pointer;}
+            .voting-wrapper #up-button:hover{background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px -16px;;}
+            .voting-btn{float:left;margin-right:5px;}
+            .voting-btn span{font-size: 11px;float: left;margin-left: 3px;}
         </style>
     </head>
 
@@ -52,27 +61,27 @@
                         <div class="panel-heading">
                             <?php
                             echo $post->title . ' ';
-                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
-                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/upvote_post" method="post">';
-                            } else {
-                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
-                            }
-                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
-                            echo '<input type="hidden" name="upvotes" value="' . $post->upvotes . '">';
-                            echo '<input type="submit" class="submit-button" value="upvote">';
-                            echo '  ';
-                            echo '</form>';
-
-                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
-                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/downvote_post" method="post">';
-                            } else {
-                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
-                            }
-                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
-                            echo '<input type="hidden" name="downvotes" value="' . $post->downvotes . '">';
-                            echo '<input type="submit" class="submit-button" value="downvote">';
-                            echo '  ';
-                            echo '</form>';
+//                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
+//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/upvote_post" method="post">';
+//                            } else {
+//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
+//                            }
+//                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
+//                            echo '<input type="hidden" name="upvotes" value="' . $post->upvotes . '">';
+//                            echo '<input type="submit" class="submit-button" value="upvote">';
+//                            echo '  ';
+//                            echo '</form>';
+//
+//                            if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
+//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/downvote_post" method="post">';
+//                            } else {
+//                                echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/sessions" method="get">';
+//                            }
+//                            echo '<input type="hidden" name="post" value="' . $post->id . '">';
+//                            echo '<input type="hidden" name="downvotes" value="' . $post->downvotes . '">';
+//                            echo '<input type="submit" class="submit-button" value="downvote">';
+//                            echo '  ';
+//                            echo '</form>';
 
                             if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
                                 echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/delete_post" method="post">';
@@ -96,9 +105,22 @@
                             ?>
                             <br>
                             <br>
-                            Community Rating: <?php echo $post->upvotes - $post->downvotes; ?>
-                            <br>
-                            Submitted on <?php echo $post->creation; ?>
+                            <div id="rating">
+                                Community Rating: <?php echo $post->upvotes - $post->downvotes; ?>
+                            </div>
+                            <div>
+                                Submitted on <?php echo $post->creation; ?>
+                            </div>
+                            <!-- voting markup -->
+                            <div class="voting-wrapper" id="voting-machine">
+                                <div class="voting-btn">
+                                    <div id="up-button">&nbsp;</div><span id="up-votes"><?php echo $post->upvotes; ?></span>
+                                </div>
+                                <div class="voting-btn">
+                                    <div id="down-button">&nbsp;</div><span id="down-votes"><?php echo $post->downvotes; ?></span>
+                                </div>
+                            </div>
+                            <!-- voting markup end -->
                         </div>
                     </div>
                 </div>
@@ -189,5 +211,41 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            $(document).ready(function () {
+                $("#voting-machine").click(function (event) {
+                    event.preventDefault();
+                    var clicked_button = event.target.id;
+
+                    if (clicked_button === 'down-button') //user disliked the content
+                    {
+                        $.ajax({
+                            method: "POST",
+                            url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/post_votes",
+                            data: {post: <?php echo $post->id; ?>, type: 'DOWNVOTE'},
+                            dataType: 'json',
+                            success: function (response) {
+                                $('#down-votes').text(response.downvotes);
+                                $('#up-votes').text(response.upvotes);
+                                $('#rating').text('Community Rating: ' + (response.upvotes - response.downvotes));
+                            }
+                        });
+                    } else if (clicked_button === 'up-button') {
+                        $.ajax({
+                            method: "POST",
+                            url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/post_votes",
+                            data: {post: <?php echo $post->id; ?>, type: 'UPVOTE'},
+                            dataType: 'json',
+                            success: function (response) {
+                                $('#down-votes').text(response.downvotes);
+                                $('#up-votes').text(response.upvotes);
+                                $('#rating').text('Community Rating: ' + (response.upvotes - response.downvotes));
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
     </body>
 </html>
