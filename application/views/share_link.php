@@ -26,13 +26,27 @@
                     <label for="link-text">Link: </label>
                     <input type="url" class="form-control" id="link-text" name="link" placeholder="Enter url" required>
                 </div>
-                
+
                 <input type="hidden" value="link" name="type" />
 
                 <button type="submit" class="btn btn-default">Share</button>
                 <button type="reset" class="btn btn-default">Reset</button>
             </form>
         </div>
+        <script>
+            $(document).ready(function () {
+                $("#logout").click(function (event) {
+                    event.preventDefault();
+                    $.ajax({
+                        method: "DELETE",
+                        url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/sessions",
+                        success: function (data) {
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
 

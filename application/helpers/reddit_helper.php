@@ -280,6 +280,7 @@ function build_comment($record) {
     $comment->upvotes = get_comment_votes($comment->id, 'UPVOTE');
     $comment->downvotes = get_comment_votes($comment->id, 'DOWNVOTE');
     $comment->parent_id = $record->comment_parent_id;
+    $comment->post_id = $record->post_id;
     $comment->user_id = $record->user_id;
 
     return $comment;

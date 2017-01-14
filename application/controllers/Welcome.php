@@ -32,13 +32,23 @@ class Welcome extends CI_Controller {
     }
 
     public function login() {
-        $username = filter_input(INPUT_POST, 'username');
-        $password = filter_input(INPUT_POST, 'password');
 
+        $foo = file_get_contents("php://input");
+        $ready = json_decode($foo);
+        
+//        $username = filter_input(INPUT_POST, 'username');
+//        $password = filter_input(INPUT_POST, 'password');
+        $username = $ready->username;
+        $password = $ready->password;
+
+//        if (isset($obj['username']) && isset($obj['password'])) {
         if (isset($username) && isset($password)) {
             $user = new User();
             $user->username = $username;
             $user->password = $password;
+            
+//            $user->username = $obj['username'];
+//            $user->password = $obj['password'];
 
             if ($user->authenticate()) {
                 //  set session user data
@@ -95,8 +105,16 @@ class Welcome extends CI_Controller {
     public function profile() {
         if (isset($this->session->username)) {
             $retreived_id = $this->session->user_id;
+            
+            $user_comments = get_user_comments($retreived_id);
+            
+            $mapping_posts = array();
+            for ($index = 0; $index < count($user_comments); $index++) {
+                $mapping_posts[] = get_post($user_comments[$index]->post_id);
+            }
             $data = array("posts" => get_user_posts($retreived_id),
-                "comments" => get_user_comments($retreived_id));
+                "comments" => $user_comments, "parent_posts" => $mapping_posts);
+            
             $this->load->view('profilepage', $data);
         } else {
             $this->index();

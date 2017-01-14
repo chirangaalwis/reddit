@@ -24,11 +24,25 @@
                     <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
                     <input type="hidden" name="parent_comment" value="<?php echo $parent_comment; ?>">
                 </div>
-                
+
                 <button type="submit" class="btn btn-default">Comment</button>
                 <button type="reset" class="btn btn-default">Reset</button>
             </form>
         </div>
+        <script>
+            $(document).ready(function () {
+                $("#logout").click(function (event) {
+                    event.preventDefault();
+                    $.ajax({
+                        method: "DELETE",
+                        url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/sessions",
+                        success: function (data) {
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
 

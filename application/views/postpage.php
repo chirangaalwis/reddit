@@ -44,7 +44,7 @@
             .voting-wrapper .up-button:hover{background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat -16px -16px;;}
             .voting-btn{float:left;margin-right:5px;}
             .voting-btn span{font-size: 11px;float: left;margin-left: 3px;}
-            
+
             .comment-voting-wrapper {display:inline-block;margin-left}
             .comment-voting-wrapper .comment-down-button {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat;float: left;height: 14px;width: 16px;cursor:pointer;margin-top: 3px;}
             .comment-voting-wrapper .comment-down-button:hover {background: url(<?php echo asset_url() ?>imgs/thumbs.png) no-repeat 0px -16px;}
@@ -215,6 +215,19 @@
         </div>
 
         <script>
+            $(document).ready(function () {
+                $("#logout").click(function (event) {
+                    event.preventDefault();
+                    $.ajax({
+                        method: "DELETE",
+                        url: "http://<?php echo gethostname(); ?>/reddit/index.php/welcome/sessions",
+                        success: function (data) {
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+
             $(document).ready(function () {
                 $("#voting-machine").click(function (event) {
                     event.preventDefault();

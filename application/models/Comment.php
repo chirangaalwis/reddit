@@ -50,6 +50,13 @@ class Comment extends CI_Model {
     public $parent_id;
 
     /**
+     * A representation of the post id to which the comment belongs.
+     * 
+     * @var string represents the post id 
+     */
+    public $post_id;
+
+    /**
      * A representation of the user id of the user who created the comment.
      * 
      * @var string represents the user id
