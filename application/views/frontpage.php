@@ -11,7 +11,6 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.3.3/backbone-min.js"></script>  
-<!--        <script src="<?php echo asset_url() ?>scripts/logout.js"></script>-->
         <style>
             .well{
                 background: #fff;
@@ -146,15 +145,7 @@
                         defaults: {
                             username: null,
                             password: null
-                        },
-//                        login: function (options) {
-//                            return Backbone.ajax(_.extend({
-//                                url: this.url(),
-//                                method: "POST",
-//                                data: this.attributes,
-//                                dataType: "json",
-//                            }, options));
-//                        },
+                        }
                     });
 
                     var model = new Session();
@@ -163,24 +154,21 @@
                         el: ".complete",
                         model: model,
                         initialize: function () {
-                            this.listenTo(this.model, "sync change", this.gotdata);
+                            this.listenTo(this.model, "sync change", this.updateInterface);
                         },
                         events: {
-                            "click #signin": "getdata"
+                            "click #signin": "captureData"
                         },
-                        getdata: function (event) {
+                        captureData: function (event) {
                             event.preventDefault();
                             var username = $("input#username").val();
                             var password = $("input#password").val();
                             this.model.set({username: username, password: password});
                             this.model.save(null, {type: 'POST'});
                         },
-                        gotdata: function () {
-                            console.log(this.model.get('username'));
-                            console.log(this.model.get('password'));
-                            Backbone.history.loadUrl(Backbone.history.fragment);
-//                            $("#base-nav").load(location.href + " #base-nav");
-//                            $("#signin-form").load(location.href + " #signin-form");
+                        updateInterface: function () {
+                            $("#base-nav").load(location.href + " #base-nav");
+                            $("#signin-form").load(location.href + " #signin-form");
                         },
                     });
 

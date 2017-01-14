@@ -103,15 +103,11 @@ if (!function_exists('get_posts')) {
 if (!function_exists('get_user_posts')) {
 
     function get_user_posts($user_id) {
-        //  check the post id
         $ci = & get_instance();
-
-//        $query = "post.*, (`post_upvotes` - `post_downvotes`) AS `difference`";
 
         $ci->db->from('post');
         $ci->db->where('user_id', $user_id);
         $ci->db->order_by('post_created', 'DESC');
-//        $ci->db->order_by('difference', 'DESC');
         $results = $ci->db->get();
 
         return build_posts($results);

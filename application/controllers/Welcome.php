@@ -31,24 +31,17 @@ class Welcome extends CI_Controller {
         }
     }
 
-    public function login() {
+    private function login() {
+        $json_data = file_get_contents("php://input");
+        $ready = json_decode($json_data);
 
-        $foo = file_get_contents("php://input");
-        $ready = json_decode($foo);
-        
-//        $username = filter_input(INPUT_POST, 'username');
-//        $password = filter_input(INPUT_POST, 'password');
         $username = $ready->username;
         $password = $ready->password;
 
-//        if (isset($obj['username']) && isset($obj['password'])) {
         if (isset($username) && isset($password)) {
             $user = new User();
             $user->username = $username;
             $user->password = $password;
-            
-//            $user->username = $obj['username'];
-//            $user->password = $obj['password'];
 
             if ($user->authenticate()) {
                 //  set session user data
@@ -127,11 +120,12 @@ class Welcome extends CI_Controller {
         }
     }
 
-    public function add_post_vote() {
+    private function add_post_vote() {
         $post_id = filter_input(INPUT_POST, 'post');
         $vote = filter_input(INPUT_POST, 'type');
         if (isset($post_id) && isset($vote)) {
             vote_post($post_id, $vote);
+            
             $upvote_number = get_post_votes($post_id, 'UPVOTE');
             $downvote_number = get_post_votes($post_id, 'DOWNVOTE');
             $response_data = array('upvotes' => $upvote_number, 'downvotes' => $downvote_number);
@@ -192,7 +186,7 @@ class Welcome extends CI_Controller {
         }
     }
 
-    public function add_comment_vote() {
+    private function add_comment_vote() {
         $comment_id = filter_input(INPUT_POST, 'comment');
         $vote = filter_input(INPUT_POST, 'type');
         if (isset($comment_id) && isset($vote)) {

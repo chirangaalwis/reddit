@@ -67,7 +67,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <?php
-                            echo $post->title . ' ';
+                            echo '<strong>' . $post->title . '</strong>  ';
 
                             if ((isset($this->session->loggedin)) && ($this->session->loggedin == 1)) {
                                 echo '<form action="http://' . gethostname() . '/reddit/index.php/welcome/delete_post" method="post">';
@@ -233,7 +233,7 @@
                     event.preventDefault();
                     var clicked_button = event.target.className;
 
-                    if (clicked_button === 'down-button') //user disliked the content
+                    if (clicked_button === 'down-button')
                     {
                         $.ajax({
                             method: "POST",

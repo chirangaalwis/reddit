@@ -25,8 +25,8 @@
     </style>
 </head>
 <body>
-    <nav id="base-nav" class="navbar navbar-custom">
-        <div class="container-fluid">
+    <nav class="navbar navbar-custom" id="base-nav">
+        <div class="container-fluid" id="top-nav">
             <div class="navbar-header">
                 <a class="navbar-brand text-muted" href="#">Reddit</a>
             </div>

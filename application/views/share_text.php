@@ -23,7 +23,7 @@
                     <input type="text" class="form-control" id="title" name="title" placeholder="Enter title" required>
                 </div>
                 <div class="form-group">
-                    <label for="text-box">Link: </label>
+                    <label for="text-box">Text: </label>
                     <input type="text" class="form-control" id="text-box" name="text" placeholder="Enter text" required>
                 </div>
 
